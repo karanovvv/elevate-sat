@@ -14,7 +14,190 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookmarks: {
+        Row: {
+          created_at: string
+          id: string
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookmarks_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          current_level: string | null
+          daily_minutes: number | null
+          email: string | null
+          exam_date: string | null
+          full_name: string | null
+          id: string
+          last_practice_date: string | null
+          notifications_enabled: boolean
+          onboarded: boolean
+          streak_days: number
+          target_score: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_level?: string | null
+          daily_minutes?: number | null
+          email?: string | null
+          exam_date?: string | null
+          full_name?: string | null
+          id: string
+          last_practice_date?: string | null
+          notifications_enabled?: boolean
+          onboarded?: boolean
+          streak_days?: number
+          target_score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_level?: string | null
+          daily_minutes?: number | null
+          email?: string | null
+          exam_date?: string | null
+          full_name?: string | null
+          id?: string
+          last_practice_date?: string | null
+          notifications_enabled?: boolean
+          onboarded?: boolean
+          streak_days?: number
+          target_score?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      question_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          seconds_spent: number
+          selected_index: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_correct: boolean
+          question_id: string
+          seconds_spent?: number
+          selected_index: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          seconds_spent?: number
+          selected_index?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_attempts_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      questions: {
+        Row: {
+          choices: Json
+          correct_index: number
+          created_at: string
+          difficulty: string
+          explanation: string
+          id: string
+          passage: string | null
+          prompt: string
+          section: string
+          topic: string
+        }
+        Insert: {
+          choices: Json
+          correct_index: number
+          created_at?: string
+          difficulty: string
+          explanation: string
+          id?: string
+          passage?: string | null
+          prompt: string
+          section: string
+          topic: string
+        }
+        Update: {
+          choices?: Json
+          correct_index?: number
+          created_at?: string
+          difficulty?: string
+          explanation?: string
+          id?: string
+          passage?: string | null
+          prompt?: string
+          section?: string
+          topic?: string
+        }
+        Relationships: []
+      }
+      test_attempts: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          math_score: number
+          rw_score: number
+          total_score: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string
+          math_score?: number
+          rw_score?: number
+          total_score?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          math_score?: number
+          rw_score?: number
+          total_score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
