@@ -107,5 +107,5 @@ export function nextDifficulty(current: Difficulty, wasCorrect: boolean): Diffic
   const order: Difficulty[] = ["Easy", "Medium", "Hard"];
   const i = order.indexOf(current);
   const next = wasCorrect ? Math.min(i + 1, 2) : Math.max(i - 1, 0);
-  return order[next];
+  return order[next] ?? "Medium";
 }
