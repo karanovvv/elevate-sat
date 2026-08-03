@@ -79,14 +79,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SATPrep — подготовка к Digital SAT" },
+      { title: "SATPrep — умная подготовка к Digital SAT" },
       {
         name: "description",
         content:
-          "Персональная подготовка к Digital SAT: практика по темам, объяснения решений и отслеживание прогресса.",
+          "Диагностика, персональный план, практика по темам с объяснениями и аналитика роста баллов 400–1600. Начните бесплатно.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { property: "og:title", content: "SATPrep — умная подготовка к Digital SAT" },
+      { name: "twitter:title", content: "SATPrep — умная подготовка к Digital SAT" },
+      { property: "og:description", content: "Диагностика, персональный план, практика по темам с объяснениями и аналитика роста баллов 400–1600. Начните бесплатно." },
+      { name: "twitter:description", content: "Диагностика, персональный план, практика по темам с объяснениями и аналитика роста баллов 400–1600. Начните бесплатно." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8f58b74f-f317-4fb8-b0f9-a1319ec8bd47/id-preview-957ffc28--d061d3b3-b9ed-4b39-8e14-2b70140078e5.lovable.app-1785768803531.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/8f58b74f-f317-4fb8-b0f9-a1319ec8bd47/id-preview-957ffc28--d061d3b3-b9ed-4b39-8e14-2b70140078e5.lovable.app-1785768803531.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
