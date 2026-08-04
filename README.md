@@ -1,14 +1,106 @@
-# Welcome to your Lovable project
+# SAT Success Path
+
+Создай веб-приложение для подготовки к экзамену SAT (Digital SAT). Ниже — полное описание.
+
+Общая концепция
+
+Платформа для самостоятельной подготовки к SAT: пользователь регистрируется, проходит диагностический тест, получает персональный план подготовки, тренируется по разделам (Math, Reading & Writing), решает полноценные пробные тесты и отслеживает прогресс.
+
+Целевая аудитория
+
+Школьники 9–12 классов, готовящиеся к поступлению в университеты США.
+
+Основные разделы (страницы)
+
+Landing page — объяснение ценности продукта, кнопка "Начать бесплатно", соцдоказательства (отзывы, статистика роста баллов).
+
+Auth (регистрация/вход) — email + пароль, а также вход через Google.
+
+Onboarding — короткий опрос: текущий уровень, целевой балл, дата экзамена, сколько времени в день готов заниматься.
+
+Dashboard (личный кабинет):
+
+текущий прогресс (диаграмма баллов по попыткам)
+
+рекомендованные задания на сегодня
+
+серия дней подряд (streak)
+
+слабые темы, требующие внимания
+
+Практика по темам — банк вопросов, разбитый по разделам:
+
+Math: Algebra, Advanced Math, Problem-Solving & Data Analysis, Geometry & Trigonometry
+
+Reading & Writing: Information & Ideas, Craft & Structure, Expression of Ideas, Standard English Conventions
+
+Для каждой темы: список вопросов с уровнем сложности (Easy/Medium/Hard), таймер, кнопка "Проверить ответ", подробное объяснение решения после ответа.
+
+Полные пробные тесты (Practice Tests) — симуляция реального Digital SAT с таймером на каждый модуль, адаптивной сложностью (по формату digital SAT — второй модуль подстраивается под результат первого), итоговый отчёт с баллом по шкале 400–1600.
+
+Аналитика/прогресс — графики роста баллов по времени, разбивка сильных/слабых тем, история пройденных тестов.
+
+Профиль пользователя — настройки, целевой балл, дата экзамена, уведомления.
+
+Функциональность
+
+Таймер для каждого раздела/теста с автосохранением прогресса
+
+Мгновенная проверка ответов с подробными объяснениями (текстовыми)
+
+Система баллов, переводимая в шкалу SAT (400–1600)
+
+Закладки/избранное для сложных вопросов, чтобы вернуться к ним позже
+
+Возможность отмечать вопрос как "разобрать позже"
+
+Адаптивный алгоритм подбора сложности следующих вопросов на основе истории ответов
+
+Дизайн
+
+Чистый, современный, минималистичный стиль — как у образовательных платформ (Khan Academy, Duolingo)
+
+Основной цвет — спокойный синий/индиго, акцентный — зелёный (для успеха) и оранжевый (для прогресса/напоминаний)
+
+Крупная читаемая типографика, дружелюбный тон интерфейса
+
+Адаптивная вёрстка (mobile-first, так как многие будут заниматься с телефона)
+
+Прогресс-бары и достижения (геймификация) для мотивации
+
+Технические детали
+
+Хранение данных о пользователях, попытках прохождения тестов и банке вопросов — через Supabase (или встроенную БД Lovable)
+
+Начни с mock-данных (10–15 примеров вопросов на раздел), чтобы протестировать интерфейс, реальный банк вопросов подключим позже
+
+Авторизация обязательна для сохранения прогресса
+
+Что сделать в первую очередь (MVP)
+
+Landing page
+
+Регистрация/вход
+
+Dashboard с mock-прогрессом
+
+Один рабочий раздел практики (например, Algebra) с 5–10 вопросами, таймером и объяснениями
+
+Базовая страница аналитики с графиком
+
+Остальные разделы (полные пробные тесты, остальные темы) добавим следующими итерациями.
 
 This project was built with [Lovable](https://lovable.dev).
 
+**Live app**: https://elevate-sat.lovable.app
+
 ## Build with Lovable
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+Continue developing this project in the [Lovable editor](https://lovable.dev/projects/d061d3b3-b9ed-4b39-8e14-2b70140078e5).
 
 - **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Stay in sync**: every change made in Lovable is committed straight to this repository.
+- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
 
 ## Development
 
@@ -20,10 +112,3 @@ cd <repository-name>
 npm i
 npm run dev
 ```
-
-## Built with
-
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
