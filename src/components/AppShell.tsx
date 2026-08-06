@@ -4,6 +4,7 @@ import { BarChart3, BookOpen, GraduationCap, LayoutDashboard, LogOut, User } fro
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Footer } from "@/components/Footer";
 
 const NAV = [
   { to: "/dashboard", label: "Кабинет", icon: LayoutDashboard },
@@ -68,6 +69,8 @@ export function AppShell({
         ) : null}
         {children}
       </main>
+
+      <Footer />
 
       <nav className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card/95 backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-5xl">

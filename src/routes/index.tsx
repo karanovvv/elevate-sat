@@ -11,6 +11,7 @@ import {
 import heroImage from "@/assets/hero-sat.jpg";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/use-session";
+import { Footer } from "@/components/Footer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -204,9 +205,7 @@ function Landing() {
         </div>
       </section>
 
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        SATPrep · Учебный проект подготовки к Digital SAT
-      </footer>
+      <Footer />
     </div>
   );
 }
