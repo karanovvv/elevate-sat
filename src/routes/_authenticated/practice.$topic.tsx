@@ -7,6 +7,7 @@ import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/hooks/use-session";
 import { bookmarksQuery, profileQuery, questionsQuery, type Question } from "@/lib/queries";
+import { AiHelperSheet } from "@/components/AiHelperSheet";
 import {
   DIFFICULTY_LABEL,
   formatClock,
@@ -231,9 +232,12 @@ function PracticeSession() {
         >
           {DIFFICULTY_LABEL[current.difficulty]}
         </Badge>
-        <span className="ml-auto inline-flex items-center gap-1 text-sm font-semibold tabular-nums">
-          <Timer className="size-4 text-muted-foreground" />
-          {formatClock(seconds)}
+        <span className="ml-auto flex items-center gap-2">
+          <span className="inline-flex items-center gap-1 text-sm font-semibold tabular-nums mr-2">
+            <Timer className="size-4 text-muted-foreground" />
+            {formatClock(seconds)}
+          </span>
+          <AiHelperSheet question={current} topicName={topic.name} />
         </span>
         <Button variant="ghost" size="icon" onClick={toggleBookmark} aria-label="Разобрать позже">
           {isBookmarked ? (

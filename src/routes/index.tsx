@@ -85,6 +85,14 @@ function Landing() {
             </span>
             SATPrep
           </span>
+          <nav className="hidden md:flex items-center gap-6 ml-8">
+            <Link to="/test-prep" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+              Test Prep
+            </Link>
+            <Link to="/free-resources" className="text-sm font-medium text-muted-foreground hover:text-foreground">
+              Free Resources
+            </Link>
+          </nav>
           <div className="ml-auto flex items-center gap-2">
             {loading ? null : user ? (
               <Button asChild size="sm">

@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as FreeResourcesRouteImport } from './routes/free-resources'
+import { Route as TestPrepRouteImport } from './routes/test-prep'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -31,6 +33,16 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FreeResourcesRoute = FreeResourcesRouteImport.update({
+  id: '/free-resources',
+  path: '/free-resources',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestPrepRoute = TestPrepRouteImport.update({
+  id: '/test-prep',
+  path: '/test-prep',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAnalyticsRoute = AuthenticatedAnalyticsRouteImport.update({
@@ -69,6 +81,8 @@ const AuthenticatedPracticeTopicRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/free-resources': typeof FreeResourcesRoute
+  '/test-prep': typeof TestPrepRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -79,6 +93,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/free-resources': typeof FreeResourcesRoute
+  '/test-prep': typeof TestPrepRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -91,6 +107,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/free-resources': typeof FreeResourcesRoute
+  '/test-prep': typeof TestPrepRoute
   '/_authenticated/analytics': typeof AuthenticatedAnalyticsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -103,6 +121,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/free-resources'
+    | '/test-prep'
     | '/analytics'
     | '/dashboard'
     | '/onboarding'
@@ -113,6 +133,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/free-resources'
+    | '/test-prep'
     | '/analytics'
     | '/dashboard'
     | '/onboarding'
@@ -124,6 +146,8 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/free-resources'
+    | '/test-prep'
     | '/_authenticated/analytics'
     | '/_authenticated/dashboard'
     | '/_authenticated/onboarding'
@@ -136,6 +160,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  FreeResourcesRoute: typeof FreeResourcesRoute
+  TestPrepRoute: typeof TestPrepRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -159,6 +185,20 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/free-resources': {
+      id: '/free-resources'
+      path: '/free-resources'
+      fullPath: '/free-resources'
+      preLoaderRoute: typeof FreeResourcesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/test-prep': {
+      id: '/test-prep'
+      path: '/test-prep'
+      fullPath: '/test-prep'
+      preLoaderRoute: typeof TestPrepRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/analytics': {
@@ -231,7 +271,19 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  FreeResourcesRoute: FreeResourcesRoute,
+  TestPrepRoute: TestPrepRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

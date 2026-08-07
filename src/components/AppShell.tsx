@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { BarChart3, BookOpen, GraduationCap, LayoutDashboard, LogOut, User } from "lucide-react";
+import { BarChart3, BookOpen, GraduationCap, LayoutDashboard, LogOut, User, Compass, Bookmark } from "lucide-react";
 import type { ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Footer } from "@/components/Footer";
 const NAV = [
   { to: "/dashboard", label: "Кабинет", icon: LayoutDashboard },
   { to: "/practice", label: "Практика", icon: BookOpen },
+  { to: "/test-prep", label: "Test Prep", icon: Compass },
+  { to: "/free-resources", label: "Resources", icon: Bookmark },
   { to: "/analytics", label: "Прогресс", icon: BarChart3 },
   { to: "/profile", label: "Профиль", icon: User },
 ] as const;
