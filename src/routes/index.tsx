@@ -12,6 +12,7 @@ import heroImage from "@/assets/hero-sat.jpg";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/use-session";
 import { Footer } from "@/components/Footer";
+import { AiHelperSheet } from "@/components/AiHelperSheet";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -213,6 +214,7 @@ function Landing() {
         </div>
       </section>
 
+      <AiHelperSheet floating />
       <Footer />
     </div>
   );

@@ -237,7 +237,7 @@ function PracticeSession() {
             <Timer className="size-4 text-muted-foreground" />
             {formatClock(seconds)}
           </span>
-          <AiHelperSheet question={current} topicName={topic.name} />
+          <AiHelperSheet question={current} topicName={topic.name} floating={false} />
         </span>
         <Button variant="ghost" size="icon" onClick={toggleBookmark} aria-label="Разобрать позже">
           {isBookmarked ? (

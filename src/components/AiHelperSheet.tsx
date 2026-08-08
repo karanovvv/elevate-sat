@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Sparkles, Send, Loader2 } from "lucide-react";
+import { Sparkles, Send, Loader2, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -18,19 +18,21 @@ type Message = {
 };
 
 interface AiHelperSheetProps {
-  question: Question;
-  topicName: string;
+  question?: Question | null;
+  topicName?: string;
+  floating?: boolean;
 }
 
-export function AiHelperSheet({ question, topicName }: AiHelperSheetProps) {
+export function AiHelperSheet({ question, topicName, floating = true }: AiHelperSheetProps) {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content:
-        "Привет! Я твой ИИ-репетитор от MK Education. Я помогу тебе разобраться с этой задачей. Давай разберем её вместе — с чего бы ты хотел начать? Нужна подсказка по правилу или формуле?",
+      content: question
+        ? "Привет! Я твой ИИ-репетитор от MK Education. Я помогу тебе разобраться с этой задачей. С чего начнем? Нужна подсказка по правилу или формуле?"
+        : "Привет! Я ИИ-консультант MK Education. Я отвечу на любые вопросы по подготовке к Digital SAT, формату теста, математике или грамматике. Чем могу помочь?",
     },
   ]);
 
@@ -51,8 +53,9 @@ export function AiHelperSheet({ question, topicName }: AiHelperSheetProps) {
     setMessages([
       {
         role: "assistant",
-        content:
-          "Привет! Я твой ИИ-репетитор от MK Education. Я помогу тебе разобраться с этой задачей. Давай разберем её вместе — с чего бы ты хотел начать? Нужна подсказка по правилу или формуле?",
+        content: question
+          ? "Привет! Я твой ИИ-репетитор от MK Education. Я помогу тебе разобраться с этой задачей. С чего начнем? Нужна подсказка по правилу или формуле?"
+          : "Привет! Я ИИ-консультант MK Education. Я отвечу на любые вопросы по подготовке к Digital SAT, формату теста, математике или грамматике. Чем могу помочь?",
       },
     ]);
     setInput("");
@@ -73,13 +76,14 @@ export function AiHelperSheet({ question, topicName }: AiHelperSheetProps) {
         throw new Error("API ключ Groq не настроен в файле .env");
       }
 
-      const systemPrompt = `You are a friendly, expert Digital SAT Tutor from "MK Education". 
+      const systemPrompt = question
+        ? `You are a friendly, expert Digital SAT Tutor from "MK Education". 
 Your goal is to help the student understand and solve the current SAT question. 
 CRITICAL RULE: Do NOT give the direct answer (e.g. "The correct answer is B") immediately. Instead, guide the student step-by-step, explain the concepts, point out clues, and ask helpful guiding questions to let them arrive at the answer themselves. Only reveal the full answer and explanation if the student explicitly asks for it or is completely stuck after several attempts.
-Always write your responses in Russian, keeping a positive, supportive, and educational tone. Use LaTeX format for math formulas if needed (e.g. \\(y = mx + b\\) or display equations).
+Always write your responses in Russian, keeping a positive, supportive, and educational tone. Use LaTeX format for math formulas if needed (e.g. \\(y = mx + b\\)).
 
-Here is the current question details for your context:
-- Topic: ${topicName}
+Current question details:
+- Topic: ${topicName || "General"}
 - Difficulty: ${question.difficulty}
 - Passage: ${question.passage ?? "None"}
 - Question Prompt: ${question.prompt}
@@ -89,8 +93,10 @@ Here is the current question details for your context:
   C) ${question.choices[2] || "N/A"}
   D) ${question.choices[3] || "N/A"}
 - Correct Choice Index: ${question.correct_index} (Answer is: ${String.fromCharCode(65 + question.correct_index)})
-- Explanation: ${question.explanation}
-`;
+- Explanation: ${question.explanation}`
+        : `You are a friendly, expert Digital SAT AI Advisor from "MK Education".
+Your goal is to help students with any questions regarding Digital SAT preparation, test rules, scoring, study schedules, math formulas, reading techniques, or MK Education services.
+Always write your responses in Russian, keeping an encouraging, clear, and highly helpful tone. Use markdown formatting and lists where appropriate.`;
 
       const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
         method: "POST",
@@ -135,19 +141,31 @@ Here is the current question details for your context:
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" className="gap-2 border-primary/30 hover:border-primary">
-          <Sparkles className="size-4 text-primary animate-pulse" />
-          <span>ИИ Помощник</span>
-        </Button>
+        {floating ? (
+          <Button
+            size="lg"
+            className="fixed bottom-20 md:bottom-6 right-6 z-50 shadow-2xl rounded-full px-5 py-6 bg-primary text-primary-foreground hover:scale-105 transition-all flex items-center gap-2.5 border-2 border-white/20"
+          >
+            <Sparkles className="size-5 text-yellow-300 animate-pulse" />
+            <span className="font-semibold text-sm">ИИ Помощник</span>
+          </Button>
+        ) : (
+          <Button variant="outline" className="gap-2 border-primary/30 hover:border-primary">
+            <Sparkles className="size-4 text-primary animate-pulse" />
+            <span>ИИ Помощник</span>
+          </Button>
+        )}
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-md md:max-w-lg flex flex-col h-full bg-card border-l border-border p-0">
+      <SheetContent className="w-full sm:max-w-md md:max-w-lg flex flex-col h-full bg-card border-l border-border p-0 z-[100]">
         <SheetHeader className="px-6 pt-6 pb-4 border-b border-border">
           <SheetTitle className="flex items-center gap-2 text-xl font-bold">
-            <Sparkles className="size-5 text-primary" />
+            <Bot className="size-6 text-primary" />
             <span>ИИ Помощник MK Education</span>
           </SheetTitle>
           <SheetDescription>
-            Ваш персональный репетитор по Digital SAT. Задавайте вопросы по текущему заданию.
+            {question
+              ? "Ваш персональный репетитор по текущему вопросу."
+              : "Ваш консультант по подготовке к Digital SAT."}
           </SheetDescription>
         </SheetHeader>
 
@@ -159,7 +177,7 @@ Here is the current question details for your context:
                 key={idx}
                 className={`flex flex-col max-w-[85%] rounded-2xl p-4 text-sm leading-relaxed ${
                   m.role === "assistant"
-                    ? "bg-secondary text-foreground self-start rounded-tl-none"
+                    ? "bg-secondary text-foreground self-start rounded-tl-none shadow-sm"
                     : "bg-primary text-primary-foreground self-end rounded-tr-none ml-auto"
                 }`}
               >
@@ -172,7 +190,7 @@ Here is the current question details for your context:
             {loading && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground p-2">
                 <Loader2 className="size-4 animate-spin text-primary" />
-                <span>ИИ думает...</span>
+                <span>ИИ отвечает...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
@@ -183,7 +201,7 @@ Here is the current question details for your context:
         <div className="p-4 border-t border-border bg-card flex gap-2 items-center">
           <input
             type="text"
-            placeholder="Спросить про формулу, намекнуть на ответ..."
+            placeholder="Спросить про формулу, правила, форматы..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {

@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/use-session";
 import { Footer } from "@/components/Footer";
+import { AiHelperSheet } from "@/components/AiHelperSheet";
 
 export const Route = createFileRoute("/free-resources")({
   head: () => ({
@@ -230,6 +231,7 @@ function FreeResources() {
         </section>
       </main>
 
+      <AiHelperSheet floating />
       <Footer />
     </div>
   );

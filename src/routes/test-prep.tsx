@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   GraduationCap,
   BookOpen,
@@ -7,16 +8,12 @@ import {
   FileText,
   Clock,
   ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/hooks/use-session";
 import { Footer } from "@/components/Footer";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { AiHelperSheet } from "@/components/AiHelperSheet";
 
 export const Route = createFileRoute("/test-prep")({
   head: () => ({
@@ -237,47 +234,26 @@ function TestPrep() {
           </div>
         </section>
 
-        {/* FAQ Section Accordion */}
+        {/* FAQ Section */}
         <section className="mx-auto max-w-3xl px-4 mt-16">
           <h2 className="text-2xl font-bold tracking-tight text-center">Часто задаваемые вопросы (FAQ)</h2>
-          <div className="mt-8">
-            <Accordion type="single" collapsible className="w-full space-y-4">
-              <AccordionItem value="item-1" className="surface-card px-5 border-b-0 rounded-xl">
-                <AccordionTrigger className="hover:no-underline font-semibold text-left">
-                  Как часто проводится Digital SAT?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-4">
-                  Экзамен проводится на международном уровне 7 раз в год: в марте, мае, июне, августе, октябре, ноябре и декабре. Рекомендуется регистрироваться за месяц до желаемой даты.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-2" className="surface-card px-5 border-b-0 rounded-xl">
-                <AccordionTrigger className="hover:no-underline font-semibold text-left">
-                  Что такое адаптивность модулей?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-4">
-                  Каждая секция состоит из двух модулей. Сложность вопросов во втором модуле напрямую зависит от того, насколько успешно вы решили первый модуль. Высокий балл (более 600+) доступен только при переходе на сложный второй модуль.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-3" className="surface-card px-5 border-b-0 rounded-xl">
-                <AccordionTrigger className="hover:no-underline font-semibold text-left">
-                  Каков максимальный и средний балл на экзамене?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-4">
-                  Максимальный балл — 1600 (по 800 за каждую из двух секций). Средний мировой показатель колеблется в районе 1050-1080 баллов. Для поступления в топ-университеты США обычно требуется 1450-1500+ баллов.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-4" className="surface-card px-5 border-b-0 rounded-xl">
-                <AccordionTrigger className="hover:no-underline font-semibold text-left">
-                  Можно ли сдавать тест на своем ноутбуке или планшете?
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground text-sm leading-relaxed pb-4">
-                  Да! Вы должны установить официальное приложение Bluebook от College Board на свой ноутбук (Windows/Mac) или iPad и прийти с ним в аккредитованный тест-центр.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+          <div className="mt-8 space-y-4">
+            <FaqItem
+              question="Как часто проводится Digital SAT?"
+              answer="Экзамен проводится на международном уровне 7 раз в год: в марте, мае, июне, августе, октябре, ноябре и декабре. Рекомендуется регистрироваться за месяц до желаемой даты."
+            />
+            <FaqItem
+              question="Что такое адаптивность модулей?"
+              answer="Каждая секция состоит из двух модулей. Сложность вопросов во втором модуле напрямую зависит от того, насколько успешно вы решили первый модуль. Высокий балл (более 600+) доступен только при переходе на сложный второй модуль."
+            />
+            <FaqItem
+              question="Каков максимальный и средний балл на экзамене?"
+              answer="Максимальный балл — 1600 (по 800 за каждую из двух секций). Средний мировой показатель колеблется в районе 1050-1080 баллов. Для поступления в топ-университеты США обычно требуется 1450-1500+ баллов."
+            />
+            <FaqItem
+              question="Можно ли сдавать тест на своем ноутбуке или планшете?"
+              answer="Да! Вы должны установить официальное приложение Bluebook от College Board на свой ноутбук (Windows/Mac) или iPad и прийти с ним в аккредитованный тест-центр."
+            />
           </div>
         </section>
 
@@ -295,7 +271,31 @@ function TestPrep() {
         </section>
       </main>
 
+      <AiHelperSheet floating />
       <Footer />
+    </div>
+  );
+}
+
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="surface-card rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between gap-3 px-5 py-4 text-left text-sm font-semibold hover:bg-secondary/40 transition-colors cursor-pointer"
+      >
+        <span>{question}</span>
+        <ChevronDown
+          className={`size-4 shrink-0 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+      {open && (
+        <div className="px-5 pb-4 text-sm leading-relaxed text-muted-foreground">
+          {answer}
+        </div>
+      )}
     </div>
   );
 }
