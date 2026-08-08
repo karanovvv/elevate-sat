@@ -107,14 +107,14 @@ function PracticeSession() {
     try {
       if (isBookmarked) {
         await supabase
-          .from("user_bookmarks")
+          .from("bookmarks")
           .delete()
           .eq("user_id", userId)
           .eq("question_id", current.id);
         toast.success("Удалено из закладок");
       } else {
         await supabase
-          .from("user_bookmarks")
+          .from("bookmarks")
           .insert({ user_id: userId, question_id: current.id });
         toast.success("Сохранено в «разобрать позже»");
       }
@@ -131,16 +131,17 @@ function PracticeSession() {
     setSaving(true);
 
     try {
-      await supabase.from("user_attempts").insert({
+      await supabase.from("question_attempts").insert({
         user_id: userId,
         question_id: current.id,
+        selected_index: selected,
         is_correct: isCorrect,
         seconds_spent: seconds,
         created_at: new Date().toISOString(),
       });
 
       const today = todayISO();
-      const lastActive = profile?.last_active_date;
+      const lastActive = profile?.last_practice_date;
       let newStreak = profile?.streak_days ?? 0;
 
       if (!lastActive) {
@@ -155,7 +156,7 @@ function PracticeSession() {
       await supabase.from("profiles").upsert({
         id: userId,
         streak_days: newStreak,
-        last_active_date: today,
+        last_practice_date: today,
         updated_at: new Date().toISOString(),
       });
 

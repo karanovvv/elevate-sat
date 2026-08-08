@@ -71,7 +71,7 @@ export function AiHelperSheet({ question, topicName, floating = true }: AiHelper
     setLoading(true);
 
     try {
-      const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+      const apiKey = import.meta.env["VITE_GROQ_API_KEY"];
       if (!apiKey) {
         throw new Error("API ключ Groq не настроен в файле .env");
       }
