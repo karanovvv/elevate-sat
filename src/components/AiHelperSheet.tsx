@@ -99,30 +99,46 @@ Current question details:
 Your goal is to help students with any questions regarding Digital SAT preparation, test rules, scoring, study schedules, math formulas, reading techniques, or MK Education services.
 Always write your responses in Russian, keeping an encouraging, clear, and highly helpful tone. Use markdown formatting and lists where appropriate.`;
 
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: "llama-3.3-70b-versatile",
-          messages: [
-            { role: "system", content: systemPrompt },
-            ...newMessages.map((m) => ({ role: m.role, content: m.content })),
-          ],
-          temperature: 0.7,
-          max_tokens: 1024,
-        }),
-      });
+      const models = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"];
+      let assistantMessage = "";
+      let lastError = "";
 
-      if (!response.ok) {
-        throw new Error(`Ошибка API: ${response.statusText}`);
+      for (const model of models) {
+        try {
+          const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey.trim()}`,
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: "system", content: systemPrompt },
+                ...newMessages.map((m) => ({ role: m.role, content: m.content })),
+              ],
+              temperature: 0.7,
+              max_tokens: 1024,
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            assistantMessage = data.choices?.[0]?.message?.content || "";
+            if (assistantMessage) break;
+          } else {
+            const errJson = await response.json().catch(() => ({}));
+            lastError = errJson.error?.message || `HTTP ${response.status}`;
+          }
+        } catch (e) {
+          lastError = e instanceof Error ? e.message : "Network error";
+        }
       }
 
-      const data = await response.json();
-      const assistantMessage =
-        data.choices?.[0]?.message?.content || "Извини, не удалось сгенерировать ответ.";
+      if (!assistantMessage) {
+        assistantMessage =
+          "Извини, произошла небольшая задержка соединения с сервером ИИ. Попробуй задать вопрос ещё раз!";
+      }
 
       setMessages((prev) => [...prev, { role: "assistant", content: assistantMessage }]);
     } catch (err) {
@@ -131,7 +147,8 @@ Always write your responses in Russian, keeping an encouraging, clear, and highl
         ...prev,
         {
           role: "assistant",
-          content: `Ошибка: ${err instanceof Error ? err.message : "Не удалось подключиться к ИИ-помощнику. Пожалуйста, проверьте настройки API ключа."}`,
+          content:
+            "Извини, сейчас связь с ИИ-помощником временно недоступна. Напиши свой вопрос ещё раз через пару секунд!",
         },
       ]);
     } finally {
