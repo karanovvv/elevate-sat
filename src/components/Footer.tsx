@@ -2,60 +2,64 @@ import { Building2, GraduationCap, Instagram, Phone } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/40 bg-zinc-950 text-zinc-200 py-10 px-4 sm:px-8">
+    <footer className="border-t border-white/5 bg-[#0b0e17]/80 backdrop-blur-2xl text-[#e0e2ef] py-12 px-4 sm:px-8 mt-auto">
       <div className="mx-auto max-w-6xl">
-        <div className="h-px w-full bg-border/40 mb-8" />
-
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-8 text-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 text-sm">
           {/* Left Block: Logo & Company Name */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-xl bg-primary text-primary-foreground font-bold">
+              <span className="grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-[#8083ff] to-[#6001d1] text-white shadow-[0_0_20px_rgba(128,131,255,0.3)] font-bold">
                 <GraduationCap className="size-6" />
               </span>
-              <span className="text-2xl font-extrabold tracking-tight text-white">
-                MK Education
-              </span>
+              <div>
+                <span className="text-xl font-headline font-extrabold tracking-tight text-white block">
+                  MK Education
+                </span>
+                <span className="text-xs text-[#8083ff] font-semibold">Elevate-SAT AI Platform</span>
+              </div>
             </div>
 
-            <div className="text-xs text-zinc-400 space-y-1">
-              <p className="text-zinc-500">Исполнитель</p>
-              <p className="font-medium text-zinc-300">ИП "MK Education"</p>
+            <div className="text-xs text-[#c7c4d7]/70 space-y-0.5">
+              <p className="text-[#908fa0]">Исполнитель</p>
+              <p className="font-medium text-[#e0e2ef]">ИП "MK Education"</p>
             </div>
           </div>
 
           {/* Right Block: Phone, Instagram, Requisites */}
           <div className="flex flex-col md:items-end text-left md:text-right space-y-3">
-            <div className="flex items-center gap-2 text-xl font-extrabold text-white md:justify-end">
-              <Phone className="size-5 text-primary" />
-              <a href="tel:+77059114954" className="hover:underline">
+            <div className="flex items-center gap-2 text-lg font-bold text-white md:justify-end">
+              <Phone className="size-4 text-[#c0c1ff]" />
+              <a href="tel:+77059114954" className="hover:text-[#c0c1ff] transition-colors">
                 +7 705 911 49 54
               </a>
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-zinc-300 md:justify-end">
-              <Instagram className="size-4 text-pink-500" />
+            <div className="flex items-center gap-2 text-sm text-[#c7c4d7] md:justify-end">
+              <Instagram className="size-4 text-pink-400" />
               <a
                 href="https://instagram.com/mk.education"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:underline"
+                className="hover:text-white transition-colors"
               >
                 @mk.education
               </a>
             </div>
 
-            <div className="text-xs text-zinc-400 space-y-1 pt-2 border-t border-zinc-800/60 md:border-t-0 md:pt-0">
-              <p className="flex items-center gap-1.5 md:justify-end text-zinc-300">
-                <Building2 className="size-3.5 text-zinc-400" />
-                <span className="font-semibold">Банковские реквизиты:</span> Банк: AO "Kaspi Bank"
+            <div className="text-xs text-[#c7c4d7]/80 space-y-1 pt-2 border-t border-white/5 md:border-t-0 md:pt-0">
+              <p className="flex items-center gap-1.5 md:justify-end text-[#c7c4d7]">
+                <Building2 className="size-3.5 text-[#908fa0]" />
+                <span className="font-semibold text-white">Банковские реквизиты:</span> Банк AO "Kaspi Bank"
               </p>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-zinc-800/40 text-center text-xs text-zinc-500">
-          © {new Date().getFullYear()} MK Education. Все права защищены.
+        <div className="mt-10 pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs text-[#908fa0] gap-4">
+          <p>© {new Date().getFullYear()} MK Education. Все права защищены.</p>
+          <p className="flex items-center gap-2">
+            <span>Aligned with College Board Digital SAT</span>
+          </p>
         </div>
       </div>
     </footer>

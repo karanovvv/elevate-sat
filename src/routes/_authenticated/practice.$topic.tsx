@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Bookmark, BookmarkCheck, CheckCircle2, Timer, XCircle } from "lucide-react";
+import { Bookmark, BookmarkCheck, CheckCircle2, Timer, XCircle, Sparkles, ArrowRight, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +17,6 @@ import {
   type Difficulty,
 } from "@/lib/sat";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
@@ -31,15 +30,10 @@ export const Route = createFileRoute("/_authenticated/practice/$topic")({
     const name = loaderData?.topic.name ?? "Практика";
     return {
       meta: [
-        { title: `${name} — практика SAT` },
+        { title: `${name} — практика Digital SAT` },
         {
           name: "description",
-          content: `Вопросы по теме ${name} с таймером, проверкой ответа и подробным объяснением решения.`,
-        },
-        { property: "og:title", content: `${name} — практика SAT` },
-        {
-          property: "og:description",
-          content: `Тренировка темы ${name} с адаптивной сложностью.`,
+          content: `Вопросы по теме ${name} с таймером, проверкой ответа и объяснением от ИИ.`,
         },
       ],
     };
@@ -47,7 +41,7 @@ export const Route = createFileRoute("/_authenticated/practice/$topic")({
   component: PracticeSession,
   notFoundComponent: () => (
     <AppShell title="Тема не найдена">
-      <Button asChild>
+      <Button asChild className="bg-[#8083ff] text-[#1000a9] font-bold">
         <Link to="/practice">Ко всем темам</Link>
       </Button>
     </AppShell>
@@ -100,113 +94,132 @@ function PracticeSession() {
   const finished = !isLoading && questions.length > 0 && !current;
 
   useEffect(() => {
-    if (checked || !current) return;
-    const id = window.setInterval(() => setSeconds((s) => s + 1), 1000);
-    return () => window.clearInterval(id);
-  }, [checked, current]);
+    if (finished || !current) return;
+    const timer = setInterval(() => setSeconds((s) => s + 1), 1000);
+    return () => clearInterval(timer);
+  }, [finished, currentId, current]);
 
-  const isBookmarked = bookmarks.some(
-    (b) => (b as { question_id: string }).question_id === current?.id,
-  );
+  const correctCount = answered.filter((a) => a.correct).length;
+  const isBookmarked = current ? bookmarks.some((b) => b.question_id === current.id) : false;
 
-  async function updateStreak() {
-    if (!user || !profile) return;
-    const today = todayISO();
-    if (profile.last_practice_date === today) return;
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    const streak = profile.last_practice_date === yesterday ? profile.streak_days + 1 : 1;
-    await supabase
-      .from("profiles")
-      .update({ streak_days: streak, last_practice_date: today })
-      .eq("id", user.id);
-    await queryClient.invalidateQueries({ queryKey: ["profile", user.id] });
+  async function toggleBookmark() {
+    if (!current || !userId) return;
+    try {
+      if (isBookmarked) {
+        await supabase
+          .from("user_bookmarks")
+          .delete()
+          .eq("user_id", userId)
+          .eq("question_id", current.id);
+        toast.success("Удалено из закладок");
+      } else {
+        await supabase
+          .from("user_bookmarks")
+          .insert({ user_id: userId, question_id: current.id });
+        toast.success("Сохранено в «разобрать позже»");
+      }
+      queryClient.invalidateQueries({ queryKey: ["bookmarks", userId] });
+    } catch {
+      toast.error("Не удалось обновить закладку");
+    }
   }
 
   async function checkAnswer() {
-    if (!current || selected === null || !user) return;
-    setSaving(true);
-    const correct = selected === current.correct_index;
-    const { error } = await supabase.from("question_attempts").insert({
-      user_id: user.id,
-      question_id: current.id,
-      selected_index: selected,
-      is_correct: correct,
-      seconds_spent: seconds,
-    });
-    setSaving(false);
-    if (error) {
-      toast.error("Не удалось сохранить ответ");
-      return;
-    }
+    if (selected === null || !current || !userId || checked) return;
+    const isCorrect = selected === current.correct_index;
     setChecked(true);
-    setAnswered((prev) => [...prev, { id: current.id, correct }]);
-    setDifficulty(nextDifficulty(current.difficulty, correct));
-    await updateStreak();
-    await queryClient.invalidateQueries({ queryKey: ["attempts", user.id] });
+    setSaving(true);
+
+    try {
+      await supabase.from("user_attempts").insert({
+        user_id: userId,
+        question_id: current.id,
+        is_correct: isCorrect,
+        seconds_spent: seconds,
+        created_at: new Date().toISOString(),
+      });
+
+      const today = todayISO();
+      const lastActive = profile?.last_active_date;
+      let newStreak = profile?.streak_days ?? 0;
+
+      if (!lastActive) {
+        newStreak = 1;
+      } else if (lastActive !== today) {
+        const diffDays = Math.round(
+          (new Date(today).getTime() - new Date(lastActive).getTime()) / (1000 * 60 * 60 * 24),
+        );
+        newStreak = diffDays === 1 ? newStreak + 1 : 1;
+      }
+
+      await supabase.from("profiles").upsert({
+        id: userId,
+        streak_days: newStreak,
+        last_active_date: today,
+        updated_at: new Date().toISOString(),
+      });
+
+      queryClient.invalidateQueries({ queryKey: ["attempts", userId] });
+      queryClient.invalidateQueries({ queryKey: ["profile", userId] });
+    } catch {
+      toast.error("Ошибка сохранения ответа");
+    } finally {
+      setSaving(false);
+    }
   }
 
   function goNext() {
-    const next = pickNext(questions, difficulty, new Set([...usedIds, current?.id ?? ""]));
-    setCurrentId(next?.id ?? null);
+    if (!current) return;
+    const isCorrect = selected === current.correct_index;
+    const newAnswered = [...answered, { id: current.id, correct: isCorrect }];
+    setAnswered(newAnswered);
+    const newUsed = new Set(newAnswered.map((a) => a.id));
+
+    const nextDiff = nextDifficulty(difficulty, isCorrect);
+    setDifficulty(nextDiff);
     setSelected(null);
     setChecked(false);
     setSeconds(0);
-  }
 
-  async function toggleBookmark() {
-    if (!current || !user) return;
-    if (isBookmarked) {
-      await supabase
-        .from("bookmarks")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("question_id", current.id);
-      toast.success("Убрано из закладок");
-    } else {
-      await supabase.from("bookmarks").insert({ user_id: user.id, question_id: current.id });
-      toast.success("Добавлено в «разобрать позже»");
-    }
-    await queryClient.invalidateQueries({ queryKey: ["bookmarks", user.id] });
+    const next = pickNext(questions, nextDiff, newUsed);
+    setCurrentId(next ? next.id : null);
   }
-
-  const correctCount = answered.filter((a) => a.correct).length;
-  const accuracy = answered.length ? correctCount / answered.length : 0;
 
   if (isLoading) {
     return (
-      <AppShell title={topic.name}>
-        <p className="text-sm text-muted-foreground">Загружаем вопросы…</p>
-      </AppShell>
-    );
-  }
-
-  if (!questions.length) {
-    return (
-      <AppShell title={topic.name} subtitle="Вопросы по этой теме скоро появятся">
-        <Button asChild>
-          <Link to="/practice">Выбрать другую тему</Link>
-        </Button>
+      <AppShell>
+        <div className="flex flex-col items-center justify-center min-h-[300px] space-y-4">
+          <Sparkles className="size-8 text-[#8083ff] animate-spin" />
+          <p className="text-sm text-[#c7c4d7]">Загрузка базы вопросов Digital SAT...</p>
+        </div>
       </AppShell>
     );
   }
 
   if (finished) {
+    const total = answered.length;
+    const accuracy = total ? correctCount / total : 0;
     return (
-      <AppShell title="Сессия завершена" subtitle={topic.name}>
-        <div className="surface-card p-6 text-center">
-          <p className="text-sm text-muted-foreground">Правильных ответов</p>
-          <p className="mt-1 text-4xl font-extrabold text-primary">
-            {correctCount}/{answered.length}
+      <AppShell title="Сессия завершена! 🎉">
+        <div className="bg-[#1c1f29]/70 backdrop-blur-xl border border-white/10 rounded-3xl p-8 sm:p-12 text-center max-w-xl mx-auto space-y-6 shadow-2xl">
+          <h2 className="text-3xl font-headline font-bold text-white">Тема: {topic.name}</h2>
+          <p className="text-[#c7c4d7] text-sm">
+            Вы ответили на все {total} вопросов сессии!
           </p>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Точность {Math.round(accuracy * 100)}% · оценка раздела ≈ {sectionScore(accuracy)} баллов
-          </p>
-          <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-center">
-            <Button asChild>
+          <div className="p-6 rounded-2xl bg-[#181b25] border border-white/5 space-y-2">
+            <span className="text-4xl font-headline font-extrabold text-[#4edea3]">
+              {Math.round(accuracy * 100)}%
+            </span>
+            <p className="text-xs text-[#908fa0]">
+              Точность ответов · оценка раздела ≈ {sectionScore(accuracy)} баллов
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <Button asChild className="flex-1 bg-[#8083ff] text-[#1000a9] font-bold py-6 rounded-xl">
               <Link to="/practice">Другая тема</Link>
             </Button>
-            <Button asChild variant="outline">
-              <Link to="/analytics">Смотреть прогресс</Link>
+            <Button asChild variant="outline" className="flex-1 border-white/10 text-white hover:bg-[#272a34] py-6 rounded-xl">
+              <Link to="/analytics">Прогресс</Link>
             </Button>
           </div>
         </div>
@@ -218,113 +231,144 @@ function PracticeSession() {
 
   return (
     <AppShell>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/practice">← Темы</Link>
-        </Button>
-        <Badge variant="secondary">{topic.name}</Badge>
-        <Badge
-          className={cn(
-            current.difficulty === "Easy" && "bg-success-soft text-success",
-            current.difficulty === "Medium" && "bg-primary-soft text-primary",
-            current.difficulty === "Hard" && "bg-warning-soft text-warning-foreground",
-          )}
-        >
-          {DIFFICULTY_LABEL[current.difficulty]}
-        </Badge>
-        <span className="ml-auto flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 text-sm font-semibold tabular-nums mr-2">
-            <Timer className="size-4 text-muted-foreground" />
-            {formatClock(seconds)}
-          </span>
-          <AiHelperSheet question={current} topicName={topic.name} floating={false} />
-        </span>
-        <Button variant="ghost" size="icon" onClick={toggleBookmark} aria-label="Разобрать позже">
-          {isBookmarked ? (
-            <BookmarkCheck className="size-5 text-accent" />
-          ) : (
-            <Bookmark className="size-5" />
-          )}
-        </Button>
-      </div>
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Practice Top Navigation HUD */}
+        <div className="bg-[#1c1f29]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+          <div className="flex items-center gap-3">
+            <Button asChild variant="ghost" size="sm" className="text-[#c7c4d7] hover:text-white hover:bg-white/5">
+              <Link to="/practice">← Все темы</Link>
+            </Button>
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#8083ff]/20 text-[#c0c1ff] border border-[#8083ff]/30">
+              {topic.name}
+            </span>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#272a34] text-[#c7c4d7]">
+              {DIFFICULTY_LABEL[current.difficulty]}
+            </span>
+          </div>
 
-      <Progress className="h-1.5" value={(answered.length / questions.length) * 100} />
-      <p className="mt-2 text-xs text-muted-foreground">
-        Вопрос {answered.length + 1} из {questions.length} · верно {correctCount}
-      </p>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-1.5 text-sm font-mono font-semibold text-[#e0e2ef] bg-[#181b25] px-3 py-1.5 rounded-xl border border-white/5">
+              <Timer className="size-4 text-[#8083ff]" />
+              <span>{formatClock(seconds)}</span>
+            </div>
 
-      <div className="surface-card mt-4 p-5">
-        {current.passage ? (
-          <p className="mb-4 rounded-xl bg-secondary p-4 text-sm leading-relaxed">
-            {current.passage}
-          </p>
-        ) : null}
-        <h1 className="text-lg leading-relaxed font-semibold">{current.prompt}</h1>
+            <AiHelperSheet question={current} topicName={topic.name} floating={false} />
 
-        <div className="mt-5 space-y-3">
-          {current.choices.map((choice, index) => {
-            const isSelected = selected === index;
-            const isCorrect = index === current.correct_index;
-            const state = checked
-              ? isCorrect
-                ? "correct"
-                : isSelected
-                  ? "wrong"
-                  : "idle"
-              : isSelected
-                ? "selected"
-                : "idle";
-            return (
-              <button
-                key={index}
-                type="button"
-                disabled={checked}
-                onClick={() => setSelected(index)}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-xl border border-border p-4 text-left text-sm transition-colors",
-                  state === "idle" && "hover:bg-secondary",
-                  state === "selected" && "border-primary bg-primary-soft",
-                  state === "correct" && "border-success bg-success-soft",
-                  state === "wrong" && "border-destructive bg-destructive-soft",
-                )}
-              >
-                <span className="grid size-7 shrink-0 place-items-center rounded-lg bg-card text-xs font-bold">
-                  {String.fromCharCode(65 + index)}
-                </span>
-                <span className="flex-1">{choice}</span>
-                {state === "correct" ? <CheckCircle2 className="size-5 text-success" /> : null}
-                {state === "wrong" ? <XCircle className="size-5 text-destructive" /> : null}
-              </button>
-            );
-          })}
+            <button
+              onClick={toggleBookmark}
+              className={`p-2 rounded-xl border transition-all ${
+                isBookmarked
+                  ? "bg-[#d2bbff]/20 border-[#d2bbff] text-[#d2bbff]"
+                  : "bg-[#181b25] border-white/5 text-[#908fa0] hover:text-white"
+              }`}
+              title="Разобрать позже"
+            >
+              {isBookmarked ? <BookmarkCheck className="size-5" /> : <Bookmark className="size-5" />}
+            </button>
+          </div>
         </div>
 
-        {checked ? (
-          <div className="mt-5 rounded-xl bg-secondary p-4">
-            <p className="text-sm font-semibold">
-              {selected === current.correct_index ? "Верно!" : "Разбор решения"}
-            </p>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-              {current.explanation}
-            </p>
+        {/* Progress Bar */}
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-xs text-[#908fa0] font-medium">
+            <span>Вопрос {answered.length + 1} из {questions.length}</span>
+            <span>Верно: {correctCount}</span>
           </div>
-        ) : null}
+          <Progress className="h-2 bg-[#272a34]" value={(answered.length / questions.length) * 100} />
+        </div>
 
-        <div className="mt-6 flex gap-3">
+        {/* Question Card Box */}
+        <div className="bg-[#1c1f29]/70 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-10 space-y-6 shadow-2xl">
+          {current.passage ? (
+            <div className="p-5 rounded-2xl bg-[#181b25]/80 border border-white/5 text-sm leading-relaxed text-[#c7c4d7] border-l-4 border-l-[#8083ff]">
+              {current.passage}
+            </div>
+          ) : null}
+
+          <h1 className="text-lg sm:text-xl font-headline font-bold text-white leading-relaxed">
+            {current.prompt}
+          </h1>
+
+          {/* Choices List */}
+          <div className="space-y-3 pt-2">
+            {current.choices.map((choice, index) => {
+              const isSelected = selected === index;
+              const isCorrect = index === current.correct_index;
+              const state = checked
+                ? isCorrect
+                  ? "correct"
+                  : isSelected
+                    ? "wrong"
+                    : "idle"
+                : isSelected
+                  ? "selected"
+                  : "idle";
+
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  disabled={checked}
+                  onClick={() => setSelected(index)}
+                  className={cn(
+                    "flex w-full items-center gap-4 rounded-2xl border p-4 sm:p-5 text-left text-sm transition-all duration-200",
+                    state === "idle" && "bg-[#181b25]/50 border-white/5 text-[#e0e2ef] hover:bg-[#272a34]/60 hover:border-white/20",
+                    state === "selected" && "bg-[#8083ff]/20 border-[#8083ff] text-white shadow-[0_0_15px_rgba(128,131,255,0.2)]",
+                    state === "correct" && "bg-[#4edea3]/20 border-[#4edea3] text-[#4edea3] font-semibold",
+                    state === "wrong" && "bg-rose-500/20 border-rose-500 text-rose-300",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "grid size-8 shrink-0 place-items-center rounded-xl font-bold text-xs shadow-md transition-colors",
+                      state === "selected" ? "bg-[#8083ff] text-[#1000a9]" : "bg-[#272a34] text-white",
+                    )}
+                  >
+                    {String.fromCharCode(65 + index)}
+                  </span>
+                  <span className="flex-1 text-sm font-medium leading-normal">{choice}</span>
+                  {state === "correct" ? <CheckCircle2 className="size-5 text-[#4edea3] shrink-0" /> : null}
+                  {state === "wrong" ? <XCircle className="size-5 text-rose-400 shrink-0" /> : null}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Solution Explanation Box */}
           {checked ? (
-            <Button className="flex-1" size="lg" onClick={goNext}>
-              Следующий вопрос
-            </Button>
-          ) : (
-            <Button
-              className="flex-1"
-              size="lg"
-              disabled={selected === null || saving}
-              onClick={checkAnswer}
-            >
-              Проверить ответ
-            </Button>
-          )}
+            <div className="p-6 rounded-2xl bg-[#181b25] border border-white/10 space-y-2 animate-fadeIn">
+              <h4 className="text-sm font-bold text-[#c0c1ff] flex items-center gap-2">
+                <Sparkles className="size-4 text-[#d2bbff]" />
+                {selected === current.correct_index ? "Отлично! Верное решение" : "Разбор решения"}
+              </h4>
+              <p className="text-sm text-[#c7c4d7] leading-relaxed">
+                {current.explanation}
+              </p>
+            </div>
+          ) : null}
+
+          {/* Action Buttons */}
+          <div className="pt-4 flex gap-4">
+            {checked ? (
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-[#8083ff] to-[#6001d1] text-white font-bold py-6 rounded-2xl shadow-[0_0_20px_rgba(128,131,255,0.3)] hover:scale-102 transition-all gap-2"
+                onClick={goNext}
+              >
+                <span>Следующий вопрос</span>
+                <ArrowRight className="size-5" />
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                disabled={selected === null || saving}
+                className="w-full bg-gradient-to-r from-[#8083ff] to-[#6001d1] text-white font-bold py-6 rounded-2xl shadow-[0_0_20px_rgba(128,131,255,0.3)] hover:scale-102 transition-all disabled:opacity-40"
+                onClick={checkAnswer}
+              >
+                Проверить ответ
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </AppShell>
